@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { CheckCircle, XCircle, ArrowRight, Loader2, Home } from 'lucide-react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -12,7 +12,7 @@ interface PaymentStatusResponse {
   error?: string
 }
 
-export default function SuccessPage() {
+function SuccessContent() {
   const [status, setStatus] = useState<PaymentStatus>('verifying')
   const [error, setError] = useState<string>('')
   const [orderId, setOrderId] = useState<string>('')
@@ -144,5 +144,13 @@ export default function SuccessPage() {
         )}
       </div>
     </div>
+  )
+}
+
+export default function SuccessPage() {
+  return (
+    <Suspense fallback={<div>Se încarcă...</div>}>
+      <SuccessContent />
+    </Suspense>
   )
 }
