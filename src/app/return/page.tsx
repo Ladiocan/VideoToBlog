@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { Loader2, CheckCircle, XCircle, ArrowRight } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
@@ -11,7 +11,7 @@ interface PaymentVerificationResponse {
   error?: string;
 }
 
-export default function PaymentReturn() {
+function ReturnContent() {
   const [status, setStatus] = useState<PaymentStatus>('verifying');
   const [error, setError] = useState<string>('');
   const searchParams = useSearchParams();
@@ -119,5 +119,13 @@ export default function PaymentReturn() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function PaymentReturn() {
+  return (
+    <Suspense fallback={<div>Se încarcă...</div>}>
+      <ReturnContent />
+    </Suspense>
   );
 }
