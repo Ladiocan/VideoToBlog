@@ -34,6 +34,15 @@ export async function POST(request: Request) {
       );
     }
 
+    // Validează formatul email-ului
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return NextResponse.json(
+        { success: false, message: 'Adresa de email nu este validă' },
+        { status: 400 }
+      );
+    }
+
     // Construiește conținutul email-ului
     const emailContent = `
       <h2>Cerere nouă de ofertă abonament</h2>
@@ -70,9 +79,29 @@ export async function POST(request: Request) {
     
     // Gestionează erorile specifice SendGrid
     if (error && typeof error === 'object' && 'response' in error) {
-      const sendGridError = error as { response?: { body?: unknown } };
-      console.error('Detalii eroare SendGrid:', sendGridError.response?.body);
+      const sendGridError = error as { response?: { body?: unknown; status?: number } };
+      console.error('Detalii eroare SendGrid:', {
+        status: sendGridError.response?.status,
+        body: sendGridError.response?.body
+      });
+      
+      // Returnează erori mai specifice pentru debugging
+      if (sendGridError.response?.status === 401) {
+        console.error('SendGrid: Cheia API este invalidă sau expirată');
+      } else if (sendGridError.response?.status === 403) {
+        console.error('SendGrid: Acces interzis - verifică domeniul și autentificarea');
+      } else if (sendGridError.response?.status === 429) {
+        console.error('SendGrid: Rate limit depășit');
+      }
     }
+
+    // Log variabilele de mediu pentru debugging (fără a expune cheia completă)
+    console.error('Environment check:', {
+      hasApiKey: !!SENDGRID_API_KEY,
+      apiKeyPrefix: SENDGRID_API_KEY?.substring(0, 10) + '...',
+      fromEmail: SENDGRID_FROM_EMAIL,
+      toEmail: SENDGRID_TO_EMAIL
+    });
 
     return NextResponse.json(
       { 
