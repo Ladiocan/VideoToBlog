@@ -1,0 +1,672 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "url": "=https://youtube-captions-transcript-subtitles-video-combiner.p.rapidapi.com/download-all/{{ $json.query.youtube_url.split('v=')[1].slice(0, 11) }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-rapidapi-key",
+              "value": "=0440e9d798msh945c054e07bff14p19d62ajsn82d639e8d33f"
+            },
+            {
+              "name": "x-rapidapi-host",
+              "value": "youtube-captions-transcript-subtitles-video-combiner.p.rapidapi.com"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "734c6c5a-9486-438b-ab7a-2c2b26460302",
+      "name": "RapidAPI (Bridge)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        704,
+        2016
+      ],
+      "notes": "Extrage ID-ul video din link si ia MP3-ul"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.replicate.com/v1/predictions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Token PUNE_CHEIA_REPLICATE_AICI"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"version\": \"meta/meta-llama-3-70b-instruct\",\n  \"input\": {\n    \"prompt\": \"Ești un Blogger Expert și Jurnalist de top. Sarcina ta este să scrii un articol viral, emoționant și captivant, bazat pe transcriptul video de mai jos. \\n\\nREGULI DE SCRIERE (OBLIGATORII):\\n1. NU copia transcriptul cu liniuțe de dialog. Transformă-l într-o POVESTE narativă.\\n2. Descrie acțiunea, emoțiile și morala, nu doar ce se spune.\\n3. Folosește un ton cald, uman și empatic.\\n4. Structurează textul logic: Introducere (context), Desfășurarea acțiunii (dialogul transformat în poveste), Punctul culminant (recompensa), Concluzie.\\n\\nREGULI TEHNICE (FORMAT HTML):\\n1. Returnează textul direct în HTML valid.\\n2. Titlul Principal: Folosește <h1> cu style=\\\"color: #D32F2F; font-family: sans-serif;\\\".\\n3. Subtitluri: Folosește <h2> cu style=\\\"color: #333; margin-top: 20px;\\\".\\n4. Textul: Folosește <p> cu style=\\\"font-size: 16px; line-height: 1.6; color: #444;\\\".\\n5. NU folosi markdown (fără **bold** sau ##). Doar tag-uri HTML.\\n\\nTRANSCRIPT SURSĂ:\\n{{ $json.subtitle.map(item => item.text).join(' ') }}\",\n    \"max_tokens\": 10000,\n    \"temperature\": 0.7\n  }\n}",
+        "options": {}
+      },
+      "id": "4c644f02-d7af-4270-944f-ef1b9764a971",
+      "name": "Generate Blog2",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1600,
+        1920
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "AYa2hpu8lkgep4wL",
+          "name": "Header Auth Replicate"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.replicate.com/v1/predictions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Token PUNE_CHEIA_REPLICATE_AICI"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"version\": \"black-forest-labs/flux-schnell\",\n  \"input\": {\n    \"prompt\": \"{{ \"A high quality, cinematic, vibrant blog cover photo showing scenes related to: \" + $json.subtitle.map(i=>i.text).join(' ').substring(0, 250) + \"...\" }}\",\n    \"aspect_ratio\": \"16:9\",\n    \"output_format\": \"jpg\"\n  }\n}",
+        "options": {}
+      },
+      "id": "136d95af-71f4-46ad-8d66-19f0f9f75428",
+      "name": "Generate Image2",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        928,
+        2112
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "AYa2hpu8lkgep4wL",
+          "name": "Header Auth Replicate"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 10
+      },
+      "id": "983d9fad-2085-4257-854e-55b88d0146a0",
+      "name": "Wait Final1",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1824,
+        1920
+      ],
+      "webhookId": "0c3b3014-128e-409c-a1bf-ad88d77f84f9"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.urls.get }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Token PUNE_CHEIA_REPLICATE_AICI"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "de11c390-d65f-4534-b5d5-e8c261d638b6",
+      "name": "Result Blog1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2048,
+        1920
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "AYa2hpu8lkgep4wL",
+          "name": "Header Auth Replicate"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Generate Image2').item.json.urls.get }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Token PUNE_CHEIA_REPLICATE_AICI"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "825b82bc-526d-42d3-8cf0-363e94f2f295",
+      "name": "Result Image1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1376,
+        2112
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "AYa2hpu8lkgep4wL",
+          "name": "Header Auth Replicate"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "id": "b5e7200e-7dd3-456f-ab99-d9b01b70cbdd",
+      "name": "Merge Results1",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [
+        2272,
+        2016
+      ]
+    },
+    {
+      "parameters": {
+        "amount": 10
+      },
+      "id": "8910583d-f05b-4e0a-a7da-9e6298ecd343",
+      "name": "Wait Final",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1152,
+        2112
+      ],
+      "webhookId": "0c3b3014-128e-409c-a1bf-ad88d77f84f9"
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Result Image1').first().json.output[0] }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file",
+              "outputPropertyName": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1600,
+        2112
+      ],
+      "id": "3882a777-b37d-4b7b-9324-2f6881ec3362",
+      "name": "HTTP Request",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "AYa2hpu8lkgep4wL",
+          "name": "Header Auth Replicate"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "inputDataFieldName": "file",
+        "name": "={{ $('Webhook').item.json.query.email }}-{{ $json.id }}",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "1JtRBIx0EPoZ54HGvobJjm7iegkti59iL",
+          "mode": "list",
+          "cachedResultName": "youtube to blog",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1JtRBIx0EPoZ54HGvobJjm7iegkti59iL"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        1824,
+        2112
+      ],
+      "id": "dbfbd11a-2baf-48ef-91a3-eece9a6aedab",
+      "name": "Upload file",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "eO9xzO5cGTWvnIoa",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "path": "70fb647a-2657-4ba7-8658-c1253e50ac37",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        480,
+        2016
+      ],
+      "id": "e9660a68-8280-4a46-98ad-c5b0ac5206af",
+      "name": "Webhook",
+      "webhookId": "70fb647a-2657-4ba7-8658-c1253e50ac37"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Preluam datele din nodurile anterioare\n// Verificam daca exista output-ul si il transformam in string daca e array\nconst blogInput = $('Merge Results1').first().json.output;\nconst fullHtml = Array.isArray(blogInput) ? blogInput.join('') : (blogInput || '');\n\n// Preluam link-ul imaginii si datele din webhook\nconst imageLink = $('Upload file').first().json.webViewLink || 'Fara Imagine';\nconst webhookData = $('Webhook').first().json.body || {};\nconst queryData = $('Webhook').first().json.query || {};\n\n// Combinam datele din body si query (ca sa fim siguri ca prindem emailul/linkul)\nconst inputYoutube = webhookData.youtube_url || queryData.youtube_url || 'Fara Link';\nconst inputEmail = webhookData.email || queryData.email || 'Fara Email';\n\n// 2. Extragem Titlul (H1) folosind Regex\nconst titleMatch = fullHtml.match(/<h1[^>]*>(.*?)<\\/h1>/i);\nconst title = titleMatch ? titleMatch[1] : 'Titlu Indisponibil';\n\n// 3. Extragem Intro (Primul paragraf P)\nconst introMatch = fullHtml.match(/<p[^>]*>(.*?)<\\/p>/i);\nlet intro = introMatch ? introMatch[1] : 'Intro Indisponibil';\n// Curatam tag-urile HTML din intro si taiem la 300 caractere\nintro = intro.replace(/<[^>]*>?/gm, '').substring(0, 300) + '...';\n\n// 4. Returnam datele curate pentru Google Sheets\nreturn {\n  ID_Comanda: $execution.id,\n  Link_Youtube: inputYoutube,\n  Email_Client: inputEmail,\n  Link_Poza_Originala: imageLink,\n  Titlu_Generat: title,\n  Intro_Generat: intro,\n  Articol_HTML_Complet: fullHtml,\n  Status_Plata: 'Pending',\n  Data: new Date().toISOString()\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2496,
+        2016
+      ],
+      "id": "36bcfc63-a8de-40cd-8c1b-6f42224562d7",
+      "name": "Prepare Data"
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1K3Ost5drihSc-vCK1ZUvMrJ0hPuOKQWB4JEJGftzxZw",
+          "mode": "list",
+          "cachedResultName": "VideoToBlog_DB",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1K3Ost5drihSc-vCK1ZUvMrJ0hPuOKQWB4JEJGftzxZw/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Foaie1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1K3Ost5drihSc-vCK1ZUvMrJ0hPuOKQWB4JEJGftzxZw/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "ID_Comanda": "={{ $json.ID_Comanda }}",
+            "Link_Youtube": "={{ $json.Link_Youtube }}",
+            "Email_Client": "={{ $json.Email_Client }}",
+            "Link_Poza_Originala": "={{ $json.Link_Poza_Originala }}",
+            "Titlu_Generat": "={{ $json.Titlu_Generat }}",
+            "Intro_Generat": "={{ $json.Intro_Generat }}",
+            "Articol_HTML_Complet": "={{ $json.Articol_HTML_Complet }}",
+            "Status_Plata": "={{ $json.Status_Plata }}",
+            "Data": "={{ $json.Data }}"
+          },
+          "matchingColumns": [
+            "ID_Comanda"
+          ],
+          "schema": [
+            {
+              "id": "ID_Comanda",
+              "displayName": "ID_Comanda",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Link_Youtube",
+              "displayName": "Link_Youtube",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email_Client",
+              "displayName": "Email_Client",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Titlu_Generat",
+              "displayName": "Titlu_Generat",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Intro_Generat",
+              "displayName": "Intro_Generat",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Articol_HTML_Complet",
+              "displayName": "Articol_HTML_Complet",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Link_Poza_Originala",
+              "displayName": "Link_Poza_Originala",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status_Plata",
+              "displayName": "Status_Plata",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Data",
+              "displayName": "Data",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2720,
+        2016
+      ],
+      "id": "f7c88502-d85b-4a15-aee4-9a85422ff1c2",
+      "name": "Save to DB",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "xB1SLBbw7Vx5wRSw",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "share",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $json.webViewLink }}",
+          "mode": "url"
+        },
+        "permissionsUi": {
+          "permissionsValues": {
+            "role": "reader",
+            "type": "anyone"
+          }
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        2048,
+        2112
+      ],
+      "id": "83f8cc46-9011-4ba0-8a9e-715258492248",
+      "name": "Share file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "eO9xzO5cGTWvnIoa",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const crypto = require('crypto');\n\n// --- 1. CONFIGURARE ---\nconst signature = '36NC-CMY1-BLEO-8YNK-MO7Z'; \nconst sandbox = true;\n\nconst publicCert = `-----BEGIN CERTIFICATE-----\nMIIC3zCCAkigAwIBAgIBATANBgkqhkiG9w0BAQsFADCBiDELMAkGA1UEBhMCUk8x\nEjAQBgNVBAgTCUJ1Y2hhcmVzdDESMBAGA1UEBxMJQnVjaGFyZXN0MRAwDgYDVQQK\nEwdORVRPUElBMSEwHwYDVQQLExhORVRPUElBIERldmVsb3BtZW50IHRlYW0xHDAa\nBgNVBAMTE25ldG9waWEtcGF5bWVudHMucm8wHhcNMjUxMjEzMTMzNzA5WhcNMzUx\nMjExMTMzNzA5WjCBiDELMAkGA1UEBhMCUk8xEjAQBgNVBAgTCUJ1Y2hhcmVzdDES\nMBAGA1UEBxMJQnVjaGFyZXN0MRAwDgYDVQQKEwdORVRPUElBMSEwHwYDVQQLExhO\nRVRPUElBIERldmVsb3BtZW50IHRlYW0xHDAaBgNVBAMTE25ldG9waWEtcGF5bWVu\ndHMucm8wgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALwh0/NhEpZFuKvghZ9N\n75CXba05MWNCh422kcfFKbqP5YViCUBg3Mc5ZYd1e0Xi9Ui1QI2Z/jvvchrDZGQw\njarApr3S9bowHEkZH81ZolOoPHBZbYpA28BIyHYRcaTXjLtiBGvjpwuzljmXeBoV\nLinIaE0IUpMen9MLWG2fGMddAgMBAAGjVzBVMA4GA1UdDwEB/wQEAwIFoDATBgNV\nHSUEDDAKBggrBgEFBQcDATAPBgNVHRMBAf8EBTADAQH/MB0GA1UdDgQWBBQ9yXCh\nMGxzUzQflmkXT1oyIBoetTANBgkqhkiG9w0BAQsFAAOBgQCAH3aaC4GryDHvhRpT\nRVenyvxnWdJ8HXN4NyPvTvZk9Gh8QWlBRtn+/WImI2NSOWqTz8SI/oAwVJz4NwdQ\nDEcNXq+0NssQK1SKzyAqwb/3LKwRONvqrKuIKXsGVyU2Zi05WlNiexH9ofv9YUYS\n8RKw8i0VykQbfKqxT/CC+uwA0g==\n-----END CERTIFICATE-----`;\n\nconst inputData = $input.item.json; \n\nconst orderId = inputData.ID_Comanda || 'TEST-' + Math.floor(Math.random() * 10000);\nconst titlu = inputData.Titlu_Generat || 'Articol VideoToBlog';\nconst intro = inputData.Intro_Generat || 'Descriere indisponibila...';\n\n// --- FIX LINK POZA (Convertire la Direct Link) ---\nlet poza = inputData.Link_Poza_Originala || '';\n// Cautam ID-ul intre /d/ si /view\nconst idMatch = poza.match(/\\/d\\/(.*?)\\//);\nif (idMatch && idMatch[1]) {\n    // Reconstruim link-ul in formatul corect pentru site\n    poza = `https://drive.google.com/uc?export=view&id=${idMatch[1]}`;\n}\n\nconst amount = '1.00'; \nconst details = `Articol Premium: ${titlu.substring(0, 50)}...`;\n\n// LINK-URI\nconst confirmUrl = 'https://n8n.ciocan.eu/webhook/netopia-confirm'; \nconst returnUrl = 'https://site-ul-tau.ro/multumim'; \n\n// --- 2. XML & CRIPTARE ---\nconst xml = `<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<order type=\"card\" timestamp=\"${new Date().getTime()}\">\n  <signature>${signature}</signature>\n  <params>\n    <param>\n      <name>test</name>\n      <value>${sandbox ? 'true' : 'false'}</value>\n    </param>\n  </params>\n  <invoice currency=\"RON\" amount=\"${amount}\">\n    <details>${details}</details>\n    <contact_info>\n      <billing type=\"person\">\n        <first_name>Client</first_name>\n        <last_name>Digital</last_name>\n        <email>client@test.com</email>\n        <address>Strada Digitala</address>\n        <mobile_phone>0700000000</mobile_phone>\n      </billing>\n    </contact_info>\n  </invoice>\n  <url>\n    <return>${returnUrl}</return>\n    <confirm>${confirmUrl}</confirm>\n  </url>\n</order>`;\n\nfunction rc4Encrypt(keyStr, dataStr) {\n    const key = Buffer.from(keyStr);\n    const data = Buffer.from(dataStr);\n    const S = [];\n    let j = 0; let x;\n    for (let i = 0; i < 256; i++) S[i] = i;\n    for (let i = 0; i < 256; i++) {\n        j = (j + S[i] + key[i % key.length]) % 256;\n        x = S[i]; S[i] = S[j]; S[j] = x;\n    }\n    let i = 0; j = 0;\n    const output = Buffer.alloc(data.length);\n    for (let y = 0; y < data.length; y++) {\n        i = (i + 1) % 256;\n        j = (j + S[i]) % 256;\n        x = S[i]; S[i] = S[j]; S[j] = x;\n        output[y] = data[y] ^ S[(S[i] + S[j]) % 256];\n    }\n    return output.toString('base64');\n}\n\nconst rc4Key = crypto.randomBytes(16).toString('hex');\nconst encryptedData = rc4Encrypt(rc4Key, xml);\n\nconst encryptedKey = crypto.publicEncrypt(\n  {\n    key: publicCert,\n    padding: crypto.constants.RSA_PKCS1_PADDING,\n  },\n  Buffer.from(rc4Key)\n).toString('base64');\n\nreturn {\n  action_url: 'http://sandboxsecure.mobilpay.ro/eng/payment/pa/payment.php',\n  env_key: encryptedKey,\n  data: encryptedData,\n  order_id: orderId,\n  titlu_final: titlu,\n  intro_final: intro,\n  poza_final: poza // Acum va fi link-ul bun!\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2912,
+        2016
+      ],
+      "id": "7df0214c-dbc3-433f-9332-cfde36d6f650",
+      "name": "Netopia Encryption"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"status\": \"success\",\n  \"id_comanda\": \"{{ $json.order_id }}\",\n  \"netopia\": {\n    \"action\": \"{{ $json.action_url }}\",\n    \"env_key\": \"{{ $json.env_key }}\",\n    \"data\": \"{{ $json.data }}\"\n  },\n  \"titlu\": \"{{ $json.titlu_final }}\",\n  \"intro\": \"{{ $json.intro_final }}\",\n  \"poza_preview\": \"{{ $json.poza_final }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        3120,
+        2016
+      ],
+      "id": "6153b878-0bdf-436b-ab43-0acb6dedec2c",
+      "name": "Respond to Frontend"
+    }
+  ],
+  "connections": {
+    "RapidAPI (Bridge)": {
+      "main": [
+        [
+          {
+            "node": "Generate Blog2",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Generate Image2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Blog2": {
+      "main": [
+        [
+          {
+            "node": "Wait Final1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Image2": {
+      "main": [
+        [
+          {
+            "node": "Wait Final",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait Final1": {
+      "main": [
+        [
+          {
+            "node": "Result Blog1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Result Blog1": {
+      "main": [
+        [
+          {
+            "node": "Merge Results1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Result Image1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Results1": {
+      "main": [
+        [
+          {
+            "node": "Prepare Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait Final": {
+      "main": [
+        [
+          {
+            "node": "Result Image1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Upload file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload file": {
+      "main": [
+        [
+          {
+            "node": "Share file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "RapidAPI (Bridge)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Data": {
+      "main": [
+        [
+          {
+            "node": "Save to DB",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save to DB": {
+      "main": [
+        [
+          {
+            "node": "Netopia Encryption",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Share file": {
+      "main": [
+        [
+          {
+            "node": "Merge Results1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Netopia Encryption": {
+      "main": [
+        [
+          {
+            "node": "Respond to Frontend",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "6c24248c3db05f7b24af3ca7012b6308023cbf9db767e1ebc630074afcfe68d1"
+  }
+}

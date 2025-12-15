@@ -1,0 +1,287 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "netopia-confirm",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -944,
+        192
+      ],
+      "id": "5a0391d7-1ef0-4f5a-a97f-48232e50cce7",
+      "name": "Webhook Netopia",
+      "webhookId": "1fe114a2-afa6-4c4e-b949-0cb453be5b08"
+    },
+    {
+      "parameters": {
+        "jsCode": "const crypto = require('crypto');\n\n// CHEIA PRIVATA\nconst privateKey = `-----BEGIN PRIVATE KEY-----\nMIICeAIBADANBgkqhkiG9w0BAQEFAASCAmIwggJeAgEAAoGBAPWF5TRG+VH3kcWa\ncheCdCB/EwUZYFELepVGldTsDIt/w7h9Bi/55+Eq0HjBp9zqMrz90jZh67akEQKb\nx1ilA87XkrBKXTvGzyszglz6UbfLhuLg1UfmjJst9cOtwPOAdL30wNewKHv2uJio\nwqqolt+OImKm0MO0/+MM/z8n4szPAgMBAAECgYEA8JL6O3cv5TkIBO+Iy7BvyUe6\ng0ySK9drjclUFwYUZLwUMzmOToQ4yVECZNCcgsKYZMbwq4jXRmcMo9mwQxOt3Zvc\nukwcwbnhDbUY2pgEr+SMasYzEErg+pJLhLkWCs8tJL+YppV30+i9JT9LelekBwY3\nbQmWdbaLv56P+5w7QIECQQD7SmicemdHGwmhEz13nbOynmP0h5nXY3yFYYkKmUSn\nR6VpunCD9G3thIBJfFVyg4EDHqOQIMekypTcd8XRAmHJAkEA+h/Q4Hia8EXJA6hf\nATkaasI6R79ZriOUpa82wo7W2jqSGQ1UtujY3n7TuNuE0GjISgYwbhcowabJKEVJ\n5gvF1wJAVjYM9cI4tHheMVi8edEs2Vbly/rJmM+U5N21emFi4FEAOumvuFWfcSFI\nMe3qEsNy+3MDgmr8k1i9AXZF85LxoQJBALRifaFlWVgu++lHZDzdkc+sg5t6xJJx\n1qIm2rc1jH2WAAdRNeczxjOwA8Etj3s+FjRMgmDjEuGWBzyju8fMdcECQQCj/DtM\n+b7wtPqMtet6cbf8Mc45vJnvmIpviG/BMYi8dlQFty1gzw/dyn4CLNM47umAVxTR\n9JSX2ToP3Qt102qK\n-----END PRIVATE KEY-----`;\n\n// Datele primite\nconst body = $('Webhook Netopia').item.json.body || {};\nconst env_key = body.env_key;\nconst data = body.data;\n\nif (!env_key || !data) {\n  throw new Error('Lipsesc datele env_key sau data');\n}\n\n// Functie Manuala RC4 Decrypt (E la fel ca encrypt)\nfunction rc4Decrypt(keyStr, dataBase64) {\n    const key = Buffer.from(keyStr);\n    const data = Buffer.from(dataBase64, 'base64');\n    const S = [];\n    let j = 0;\n    let x;\n    for (let i = 0; i < 256; i++) S[i] = i;\n    for (let i = 0; i < 256; i++) {\n        j = (j + S[i] + key[i % key.length]) % 256;\n        x = S[i]; S[i] = S[j]; S[j] = x;\n    }\n    let i = 0; j = 0;\n    const output = Buffer.alloc(data.length);\n    for (let y = 0; y < data.length; y++) {\n        i = (i + 1) % 256;\n        j = (j + S[i]) % 256;\n        x = S[i]; S[i] = S[j]; S[j] = x;\n        output[y] = data[y] ^ S[(S[i] + S[j]) % 256];\n    }\n    return output.toString('utf8');\n}\n\n// 1. Decriptare Cheie RC4 cu RSA\nconst decryptedKey = crypto.privateDecrypt(\n  {\n    key: privateKey,\n    padding: crypto.constants.RSA_PKCS1_PADDING,\n  },\n  Buffer.from(env_key, 'base64')\n);\nconst rc4Key = decryptedKey.toString();\n\n// 2. Decriptare XML cu Manual RC4\nconst xml = rc4Decrypt(rc4Key, data);\n\n// 3. Extragere Date\nconst action = xml.match(/<action>(.*?)<\\/action>/)?.[1];\nconst orderId = xml.match(/order id=\"(.*?)\"/)?.[1];\nconst errorMessage = xml.match(/<error[^>]*>(.*?)<\\/error>/)?.[1];\n\nreturn {\n  status_plata: action, \n  id_comanda: orderId,\n  netopia_error: errorMessage,\n  raw_xml: xml\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -720,
+        192
+      ],
+      "id": "e6f459d8-9b12-4430-bfc0-91418f60d66c",
+      "name": "Decrypt Netopia"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "documentId": {
+          "__rl": true,
+          "value": "1K3Ost5drihSc-vCK1ZUvMrJ0hPuOKQWB4JEJGftzxZw",
+          "mode": "list",
+          "cachedResultName": "VideoToBlog_DB",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1K3Ost5drihSc-vCK1ZUvMrJ0hPuOKQWB4JEJGftzxZw/edit?usp=drivesdk"
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -512,
+        192
+      ],
+      "id": "5ab5dca3-f481-434f-b204-f1d37ec9b43a",
+      "name": "Get Order from DB",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "xB1SLBbw7Vx5wRSw",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "18f50493-277e-4029-8473-199dc2f2a71d",
+              "leftValue": "={{ $('Decrypt Netopia').item.json.status_plata }}",
+              "rightValue": "confirmed",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -288,
+        192
+      ],
+      "id": "5a79b13d-86cc-4893-96d8-b2fd6ffded08",
+      "name": "Payment Confirmed?"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1K3Ost5drihSc-vCK1ZUvMrJ0hPuOKQWB4JEJGftzxZw",
+          "mode": "list",
+          "cachedResultName": "VideoToBlog_DB",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1K3Ost5drihSc-vCK1ZUvMrJ0hPuOKQWB4JEJGftzxZw/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Foaie1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1K3Ost5drihSc-vCK1ZUvMrJ0hPuOKQWB4JEJGftzxZw/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Status_Plata": "Paid"
+          },
+          "matchingColumns": [
+            "ID_Comanda"
+          ],
+          "schema": [
+            {
+              "id": "ID_Comanda",
+              "displayName": "ID_Comanda",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Status_Plata",
+              "displayName": "Status_Plata",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -64,
+        80
+      ],
+      "id": "654b9fa9-85c5-4317-b484-907dc0a1047e",
+      "name": "Mark as Paid",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "xB1SLBbw7Vx5wRSw",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><crc error_type=\"0\" error_code=\"0\">0</crc>",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/xml"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        384,
+        192
+      ],
+      "id": "fdd4eb66-94de-4d77-961a-e22e74f254c3",
+      "name": "Respond to Netopia"
+    },
+    {
+      "parameters": {
+        "fromEmail": "contact@turistintransilvania.com",
+        "toEmail": "={{ $json.Email_Client }}",
+        "subject": "Articolul tau este gata! 🚀",
+        "html": "=<!DOCTYPE html>|<html><head><style>  body { background-color: #f4f4f4; padding: 20px; font-family: 'Helvetica Neue', Arial, sans-serif; margin: 0; }  .card { background: #ffffff; max-width: 600px; margin: 0 auto; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }  .hero-image { width: 100% !important; height: auto; display: block; }  .content { padding: 30px; color: #444; line-height: 1.6; font-size: 16px; }  .content h1 { color: #D32F2F; margin-top: 0; font-size: 24px; }  .footer { text-align: center; padding: 20px; font-size: 12px; color: #aaa; background-color: #fafafa; border-top: 1px solid #eee; }</style></head><body><div class=\"card\">  <img src=\"{{ $json.Link_Poza_Originala }}\" alt=\"Cover\" class=\"hero-image\"/>  <div class=\"content\">    {{ $json.Articol_HTML_Complet }}  </div>  <div class=\"footer\">Generat automat cu VideoToBlog 🚀</div></div></body></html>",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        144,
+        80
+      ],
+      "id": "0adda3b4-6fbc-4cb9-951d-92072e315d3d",
+      "name": "Send email",
+      "webhookId": "83763f70-5d24-4c6e-b641-a8c0ec57af05",
+      "credentials": {
+        "smtp": {
+          "id": "noexMVdydggEELFu",
+          "name": "SMTP account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook Netopia": {
+      "main": [
+        [
+          {
+            "node": "Decrypt Netopia",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Decrypt Netopia": {
+      "main": [
+        [
+          {
+            "node": "Get Order from DB",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Order from DB": {
+      "main": [
+        [
+          {
+            "node": "Payment Confirmed?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Payment Confirmed?": {
+      "main": [
+        [
+          {
+            "node": "Mark as Paid",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond to Netopia",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mark as Paid": {
+      "main": [
+        [
+          {
+            "node": "Send email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send email": {
+      "main": [
+        [
+          {
+            "node": "Respond to Netopia",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "6c24248c3db05f7b24af3ca7012b6308023cbf9db767e1ebc630074afcfe68d1"
+  }
+}
