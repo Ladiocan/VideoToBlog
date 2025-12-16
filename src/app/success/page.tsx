@@ -4,6 +4,7 @@ import { useEffect, useState, Suspense } from 'react'
 import { CheckCircle, XCircle, ArrowRight, Loader2, Home } from 'lucide-react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
+import SupportPopup from '@/components/SupportPopup'
 
 type PaymentStatus = 'verifying' | 'success' | 'error'
 
@@ -16,6 +17,7 @@ function SuccessContent() {
   const [status, setStatus] = useState<PaymentStatus>('verifying')
   const [error, setError] = useState<string>('')
   const [orderId, setOrderId] = useState<string>('')
+  const [isSupportPopupOpen, setIsSupportPopupOpen] = useState(false)
   const searchParams = useSearchParams()
   const router = useRouter()
 
@@ -108,12 +110,12 @@ function SuccessContent() {
               Ți-am trimis articolul pe email. Dacă nu l-ai primit în 5 minute, contactează-ne cu ID-ul comenzii.
             </p>
             <div className="pt-4 space-y-3">
-              <a 
-                href="mailto:contact@videotoblog.ro?subject=Problema cu comanda&body=ID Comandă: " 
+              <button 
+                onClick={() => setIsSupportPopupOpen(true)}
                 className="block w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-lg transition-colors"
               >
                 Contactează Suportul
-              </a>
+              </button>
               <Link 
                 href="/"
                 className="block w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-6 rounded-lg transition-colors"
@@ -143,6 +145,12 @@ function SuccessContent() {
           </div>
         )}
       </div>
+      
+      <SupportPopup 
+        isOpen={isSupportPopupOpen}
+        onClose={() => setIsSupportPopupOpen(false)}
+        orderId={orderId}
+      />
     </div>
   )
 }
