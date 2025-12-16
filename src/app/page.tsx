@@ -226,7 +226,7 @@ export default function Home() {
       const responseText = await response.text()
       
       if (!responseText || responseText.trim() === '') {
-        throw new Error('Răspuns gol de la server')
+        throw new Error('Linkul nu este valid, încercă cu un alt link.')
       }
       
       let responseData: any;
